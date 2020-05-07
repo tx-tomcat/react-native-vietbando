@@ -1,7 +1,8 @@
 
-# React Native Vietbando
+# React Native Vietbando MapView
 A basic port of Vietbando for React Native. Handles basemap URLs, map recentering, Callout views (iOS only for now), drawing/moving/updating graphics onto the map, routing, and single tap listeners.
 
+![Image 1](readme_images/1.png) | ![Image 2](readme_images/2.png) | ![Image 3](readme_images/3.png)
 ----- | ----- | -----
 
 # Usage
@@ -240,14 +241,14 @@ pointGraphics: [
 ```
 
 ##### Routing
-For routing to work, you must also pass in a routeUrl prop with a reference to a routing service. Check the [Choosing a routing data source](https://developers.Vietbando.com/android/latest/guide/find-a-route.htm) section of this Esri Article for information on how to make one. 
+For routing to work, you must also pass in a routeUrl prop with a reference to a routing service. Check the [Choosing a routing data source](http://maps.vietbando.com/maps/) section of this Esri Article for information on how to make one. 
 
 Once you have a routing URL, try calling `routeGraphicsOverlay` to see if your routing service has been configuired correctly. If it doesn't work, chances are your URL doesn't have the necessary permissions set. Make sure it has public access. Note that routing is an asynchronous task, and for longer routes, this may take a moment. Use the `onRoutingStatusUpdate` callback to create any UI you may need to inform the user that a route calculation is currently taking place.
 
-The biggest gotcha, however, is that routing uses up [Vietbando Online Credits](https://www.esri.com/en-us/Vietbando/products/Vietbando-online/pricing/credits). You are given 50 free credits a month; however, you must buy additional credits to continue routing. Make sure your Vietbando Online account has sufficient credits before release.
+The biggest gotcha, however, is that routing uses up [Vietbando Online Credits](http://maps.vietbando.com/maps/). You are given 50 free credits a month; however, you must buy additional credits to continue routing. Make sure your Vietbando Online account has sufficient credits before release.
 
 # License
-Library Copyright 2019 David Galindo
+Library Copyright 2019 Nguyễn Đình Dũng
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
