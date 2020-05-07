@@ -1,694 +1,259 @@
-# react-native-maps [![npm version](https://img.shields.io/npm/v/react-native-maps.svg?style=flat)](https://www.npmjs.com/package/react-native-maps)
 
-React Native Map components for iOS + Android
+# React Native Vietbando MapView
+A basic port of Vietbando for React Native. Handles basemap URLs, map recentering, Callout views (iOS only for now), drawing/moving/updating graphics onto the map, routing, and single tap listeners.
 
-## Installation
+![Image 1](readme_images/1.png) | ![Image 2](readme_images/2.png) | ![Image 3](readme_images/3.png)
+----- | ----- | -----
 
-See [Installation Instructions](docs/installation.md).
-
-See [Setup Instructions for the Included Example Project](docs/examples-setup.md).
-
-## Compatibility
-
-Due to the rapid changes being made in the React Native ecosystem, we are not officially going to
-support this module on anything but the latest version of React Native. With that said, we will do
-our best to stay compatible with older versions as much that is practical, and the peer dependency
-of this requirement is set to `"react-native": "*"` explicitly for this reason. If you are using
-an older version of React Native with this module though, some features may be buggy.
-
-### Note about React requires
-
-Since react-native 0.25.0, `React` should be required from `node_modules`.
-React Native versions from 0.18 should be working out of the box, for lower
-versions you should add `react` as a dependency in your `package.json`.
-
-## Component API
-
-[`<MapView />` Component API](docs/mapview.md)
-
-[`<Marker />` Component API](docs/marker.md)
-
-[`<Callout />` Component API](docs/callout.md)
-
-[`<Polygon />` Component API](docs/polygon.md)
-
-[`<Polyline />` Component API](docs/polyline.md)
-
-[`<Circle />` Component API](docs/circle.md)
-
-[`<Overlay />` Component API](docs/overlay.md)
-
-[`<Heatmap />` Component API](docs/heatmap.md)
-
-[`<Geojson />` Component API](docs/geojson.md)
-
-## General Usage
-
-```js
-import MapView from 'react-native-maps';
-```
-or
-
-```js
-var MapView = require('react-native-maps');
-```
-
-This MapView component is built so that features on the map (such as Markers, Polygons, etc.) are
-specified as children of the MapView itself. This provides an intuitive and react-like API for
-declaratively controlling features on the map.
-
-### Rendering a Map with an initial region
-
-## MapView
-```jsx
-  <MapView
-    initialRegion={{
-      latitude: 37.78825,
-      longitude: -122.4324,
-      latitudeDelta: 0.0922,
-      longitudeDelta: 0.0421,
-    }}
-  />
-```
-
-### Using a MapView while controlling the region as state
-
-```jsx
-getInitialState() {
-  return {
-    region: {
-      latitude: 37.78825,
-      longitude: -122.4324,
-      latitudeDelta: 0.0922,
-      longitudeDelta: 0.0421,
-    },
-  };
-}
-
-onRegionChange(region) {
-  this.setState({ region });
-}
-
-render() {
-  return (
-    <MapView
-      region={this.state.region}
-      onRegionChange={this.onRegionChange}
-    />
-  );
-}
-```
-
-### Rendering a list of markers on a map
-
-```jsx
-import { Marker } from 'react-native-maps';
-
-<MapView
-  region={this.state.region}
-  onRegionChange={this.onRegionChange}
->
-  {this.state.markers.map(marker => (
-    <Marker
-      coordinate={marker.latlng}
-      title={marker.title}
-      description={marker.description}
-    />
-  ))}
-</MapView>
-```
-
-### Rendering a Marker with a custom view
-
-```jsx
-<Marker coordinate={marker.latlng}>
-  <MyCustomMarkerView {...marker} />
-</Marker>
-```
-
-### Rendering a Marker with a custom image
-
-```jsx
-<Marker
-  coordinate={marker.latlng}
-  image={require('../assets/pin.png')}
-/>
-```
-
-### Rendering a custom Marker with a custom Callout
-
-```jsx
-import { Callout } from 'react-native-maps';
-
-<Marker coordinate={marker.latlng}>
-  <MyCustomMarkerView {...marker} />
-  <Callout>
-    <MyCustomCalloutView {...marker} />
-  </Callout>
-</Marker>
-```
-
-### Draggable Markers
-
-```jsx
-<MapView initialRegion={...}>
-  <Marker draggable
-    coordinate={this.state.x}
-    onDragEnd={(e) => this.setState({ x: e.nativeEvent.coordinate })}
-  />
-</MapView>
-```
-
-### Using a custom Tile Overlay
-
-#### Tile Overlay using tile server
-
-```jsx
-import { UrlTile } from 'react-native-maps';
-
-<MapView
-  region={this.state.region}
-  onRegionChange={this.onRegionChange}
->
-  <UrlTile
-    /**
-     * The url template of the tile server. The patterns {x} {y} {z} will be replaced at runtime
-     * For example, http://c.tile.openstreetmap.org/{z}/{x}/{y}.png
-     */
-    urlTemplate={this.state.urlTemplate}
-    /**
-     * The maximum zoom level for this tile overlay. Corresponds to the maximumZ setting in
-     * MKTileOverlay. iOS only.
-     */
-    maximumZ={19}
-    /**
-     * flipY allows tiles with inverted y coordinates (origin at bottom left of map)
-     * to be used. Its default value is false.
-     */
-    flipY={false}
-  />
-</MapView>
-```
-
-For Android: add the following line in your AndroidManifest.xml
-```xml
-<uses-permission android:name="android.permission.INTERNET" />
-```
-For IOS: configure [App Transport Security](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW33) in your app
-
-#### Tile Overlay using local tiles
-
-Tiles can be stored locally within device using xyz tiling scheme and displayed as tile overlay as well. This is usefull especially for offline map usage when tiles are available for selected map region within device storage.
-
-```jsx
-import { LocalTile } from 'react-native-maps';
-
-<MapView
-  region={this.state.region}
-  onRegionChange={this.onRegionChange}
->
-  <LocalTile
-   /**
-    * The path template of the locally stored tiles. The patterns {x} {y} {z} will be replaced at runtime
-    * For example, /storage/emulated/0/mytiles/{z}/{x}/{y}.png
-    */
-   pathTemplate={this.state.pathTemplate}
-   /**
-    * The size of provided local tiles (usually 256 or 512).
-    */
-   tileSize={256}
-  />
-</MapView>
-```
-
-For Android: LocalTile is still just overlay over original map tiles. It means that if device is online, underlying tiles will be still downloaded. If original tiles download/display is not desirable set mapType to 'none'. For example:
-```
-<MapView
-  mapType={Platform.OS == "android" ? "none" : "standard"}
->
-```
-
-See [OSM Wiki](https://wiki.openstreetmap.org/wiki/Category:Tile_downloading) for how to download tiles for offline usage.
-
-### Overlaying other components on the map
-
-Place components you that wish to overlay `MapView` underneath the `MapView` closing tag. Absolutely position these elements.
-
-```jsx
-render() {
-  return (
-    <MapView
-      region={this.state.region}
-    />
-    <OverlayComponent
-      style={{position: “absolute”, bottom: 50}}
-    />
-  );
-}
-```
-
-### Customizing the map style
-
-Create the json object, or download a generated one from the [google style generator](https://mapstyle.withgoogle.com/).
-
-```jsx
-// The generated json object
-mapStyle = [ ... ]
-
-render() {
-  return (
-    <MapView
-      region={this.state.region}
-      onRegionChange={this.onRegionChange}
-      customMapStyle={mapStyle}
-    />
-  );
-}
-```
-For iOS, in addition to providing the `mapStyle` you will need to do the following
-
-```jsx
-import MapView, { PROVIDER_GOOGLE } from 'react-native-maps'
-
-// ...
-
-<MapView
-  provider={PROVIDER_GOOGLE}
-  customMapStyle={MapStyle}
->
-```
-
-Then add the AirGoogleMaps directory:
-
-https://github.com/dzungdinh94/react-native-vietbando/blob/1e71a21f39e7b88554852951f773c731c94680c9/docs/installation.md#ios
-
-An unofficial step-by-step guide is also available at https://gist.github.com/heron2014/e60fa003e9b117ce80d56bb1d5bfe9e0
-
-## Examples
-
-To run examples:
-
-```bash
-npm i
-npm start
-
-#Android
-npm run run:android
-
-#iOS
-npm run build:ios
-npm run run:ios
-```
-
-### MapView Events
-
-The `<MapView />` component and its child components have several events that you can subscribe to.
-This example displays some of them in a log as a demonstration.
-
-![](http://i.giphy.com/3o6UBpncYQASu2WTW8.gif) ![](http://i.giphy.com/xT77YdviLqtjaecRYA.gif)
-
-
-
-### Tracking Region / Location
-
-![](http://i.giphy.com/3o6UBoPSLlIKQ2dv7q.gif) ![](http://i.giphy.com/xT77XWjqECvdgjx9oA.gif)
-
-
-
-
-### Programmatically Changing Region
-
-One can change the mapview's position using refs and component methods, or by passing in an updated
-`region` prop.  The component methods will allow one to animate to a given position like the native
-API could.
-
-![](http://i.giphy.com/3o6UB7poyB6YJ0KPWU.gif) ![](http://i.giphy.com/xT77Yc4wK3pzZusEbm.gif)
-
-
-### Changing the style of the map
-
-![](http://i.imgur.com/a9WqCL6.png)
-
-
-
-### Arbitrary React Views as Markers
-
-![](http://i.giphy.com/3o6UBcsCLoLQtksJxe.gif) ![](http://i.giphy.com/3o6UB1qGEM9jYni3KM.gif)
-
-
-
-### Using the MapView with the Animated API
-
-The `<MapView />` component can be made to work with the Animated API, having the entire `region` prop
-be declared as an animated value. This allows one to animate the zoom and position of the MapView along
-with other gestures, giving a nice feel.
-
-Further, Marker views can use the animated API to enhance the effect.
-
-![](http://i.giphy.com/xT77XMw9IwS6QAv0nC.gif) ![](http://i.giphy.com/3o6UBdGQdM1GmVoIdq.gif)
-
-Issue: Since android needs to render its marker views as a bitmap, the animations APIs may not be
-compatible with the Marker views. Not sure if this can be worked around yet or not.
-
-Markers' coordinates can also be animated, as shown in this example:
-
-![](http://i.giphy.com/xTcnTelp1OwGPu1Wh2.gif) ![](http://i.giphy.com/xTcnT6WVpwlCiQnFW8.gif)
-
-
-
-### Polygon Creator
-
-![](http://i.giphy.com/3o6UAZWqQBkOzs8HE4.gif) ![](http://i.giphy.com/xT77XVBRErNZl3zyWQ.gif)
-
-
-
-### Other Overlays
-
-So far, `<Circle />`, `<Polygon />`, and `<Polyline />` are available to pass in as children to the
-`<MapView />` component.
-
-![](http://i.giphy.com/xT77XZCH8JpEhzVcNG.gif) ![](http://i.giphy.com/xT77XZyA0aYeOX5jsA.gif)
-
-
-
-### Gradient Polylines (iOS MapKit only)
-
-Gradient polylines can be created using the `strokeColors` prop of the `<Polyline>` component.
-
-![](https://i.imgur.com/P7UeqAm.png?1)
-
-
-
-### Default Markers
-
-Default markers will be rendered unless a custom marker is specified. One can optionally adjust the
-color of the default marker by using the `pinColor` prop.
-
-![](http://i.giphy.com/xT77Y0pWKmUUnguHK0.gif) ![](http://i.giphy.com/3o6UBfk3I58VIwZjVe.gif)
-
-
-
-### Custom Callouts
-
-Callouts to markers can be completely arbitrary react views, similar to markers.  As a result, they
-can be interacted with like any other view.
-
-Additionally, you can fall back to the standard behavior of just having a title/description through
-the `<Marker />`'s `title` and `description` props.
-
-Custom callout views can be the entire tooltip bubble, or just the content inside of the system
-default bubble.
-
-To handle press on specific subview of callout use `<CalloutSubview />` with `onPress`.
-See `Callouts.js` example.
-
-![](http://i.giphy.com/xT77XNePGnMIIDpbnq.gif) ![](http://i.giphy.com/xT77YdU0HXryvoRqaQ.gif)
-
-
-
-### Image-based Markers
-
-Markers can be customized by just using images, and specified using the `image` prop.
-
-![](http://i.imgur.com/mzrOjTR.png)
-
-
-
-### Draggable Markers
-
-Markers are draggable, and emit continuous drag events to update other UI during drags.
-
-![](http://i.giphy.com/l2JImnZxdv1WbpQfC.gif) ![](http://i.giphy.com/l2JIhv4Jx6Ugx1EGI.gif)
-
-### Lite Mode ( Android )
-
-Enable lite mode on Android with `liteMode` prop. Ideal when having multiple maps in a View or ScrollView.
-
-![](http://i.giphy.com/qZ2lAf18s89na.gif)
-
-### On Poi Click (Google Maps Only)
-
-Poi are clickable, you can catch the event to get its information (usually to get the full detail from Google Place using the placeId).
-
-![](https://media.giphy.com/media/3480VsCKnHr31uCLU3/giphy.gif)
-
-### Animated Region
-
-The MapView can accept an `AnimatedRegion` value as its `region` prop. This allows you to utilize the Animated API to control the map's center and zoom.
-
-```jsx
-import MapView, { AnimatedRegion, Animated } from 'react-native-maps';
-
-getInitialState() {
-  return {
-    region: new AnimatedRegion({
-      latitude: LATITUDE,
-      longitude: LONGITUDE,
-      latitudeDelta: LATITUDE_DELTA,
-      longitudeDelta: LONGITUDE_DELTA,
-    }),
-  };
-}
-
-onRegionChange(region) {
-  this.state.region.setValue(region);
-}
-
-render() {
-  return (
-    <Animated
-      region={this.state.region}
-      onRegionChange={this.onRegionChange}
-    />
-  );
-}
-```
-
-### Animated Marker Position
-
-Markers can also accept an `AnimatedRegion` value as a coordinate.
-
-```jsx
-import Mapview, { AnimatedRegion, Marker } from 'react-native-maps';
-
-getInitialState() {
-  return {
-    coordinate: new AnimatedRegion({
-      latitude: LATITUDE,
-      longitude: LONGITUDE,
-    }),
-  };
-}
-
-componentWillReceiveProps(nextProps) {
-  const duration = 500
-
-  if (this.props.coordinate !== nextProps.coordinate) {
-    if (Platform.OS === 'android') {
-      if (this.marker) {
-        this.marker._component.animateMarkerToCoordinate(
-          nextProps.coordinate,
-          duration
-        );
-      }
-    } else {
-      this.state.coordinate.timing({
-        ...nextProps.coordinate,
-        duration
-      }).start();
-    }
-  }
-}
-
-render() {
-  return (
-    <MapView initialRegion={...}>
-      <MapView.Marker.Animated
-        ref={marker => { this.marker = marker }}
-        coordinate={this.state.coordinate}
-      />
-    </MapView>
-  );
-}
-```
-
-If you need a smoother animation to move the marker on Android, you can modify the previous example:
-
-```jsx
-// ...
-
-componentWillReceiveProps(nextProps) {
-  const duration = 500
-
-  if (this.props.coordinate !== nextProps.coordinate) {
-    if (Platform.OS === 'android') {
-      if (this.marker) {
-        this.marker._component.animateMarkerToCoordinate(
-          nextProps.coordinate,
-          duration
-        );
-      }
-    } else {
-      this.state.coordinate.timing({
-        ...nextProps.coordinate,
-        duration
-      }).start();
-    }
-  }
-}
-
-render() {
-  return (
-    <MapView initialRegion={...}>
-      <Marker.Animated
-        ref={marker => { this.marker = marker }}
-        coordinate={this.state.coordinate}
-      />
-    </MapView>
-  );
-}
-```
-
-### Take Snapshot of map
-
-```jsx
-import MapView, { Marker } from 'react-native-maps';
-
-getInitialState() {
-  return {
-    coordinate: {
-      latitude: LATITUDE,
-      longitude: LONGITUDE,
-    },
-  };
-}
-
-takeSnapshot () {
-  // 'takeSnapshot' takes a config object with the
-  // following options
-  const snapshot = this.map.takeSnapshot({
-    width: 300,      // optional, when omitted the view-width is used
-    height: 300,     // optional, when omitted the view-height is used
-    region: {..},    // iOS only, optional region to render
-    format: 'png',   // image formats: 'png', 'jpg' (default: 'png')
-    quality: 0.8,    // image quality: 0..1 (only relevant for jpg, default: 1)
-    result: 'file'   // result types: 'file', 'base64' (default: 'file')
-  });
-  snapshot.then((uri) => {
-    this.setState({ mapSnapshot: uri });
-  });
-}
-
-render() {
-  return (
-    <View>
-      <MapView initialRegion={...} ref={map => { this.map = map }}>
-        <Marker coordinate={this.state.coordinate} />
-      </MapView>
-      <Image source={{ uri: this.state.mapSnapshot.uri }} />
-      <TouchableOpacity onPress={this.takeSnapshot}>
-        Take Snapshot
-      </TouchableOpacity>
-    </View>
-  );
-}
-```
-
-### Zoom to Specified Markers
-
-Pass an array of marker identifiers to have the map re-focus.
-
-![](http://i.giphy.com/3o7qEbOQnO0yoXqKJ2.gif) ![](http://i.giphy.com/l41YdrQZ7m6Dz4h0c.gif)
-
-### Zoom to Specified Coordinates
-
-Pass an array of coordinates to focus a map region on said coordinates.
-
-![](https://cloud.githubusercontent.com/assets/1627824/18609960/da5d9e06-7cdc-11e6-811e-34e255093df9.gif)
-
-### Troubleshooting
-
-#### My map is blank
-
-* Make sure that you have [properly installed](docs/installation.md) react-native-maps.
-* Check in the logs if there is more informations about the issue.
-* Try setting the style of the MapView to an absolute position with top, left, right and bottom  values set.
-*   Make sure you have enabled Google Maps API in [Google developer console](https://console.developers.google.com/apis/library)
-
+# Usage
 ```javascript
-const styles = StyleSheet.create({
-  map: {
-    ...StyleSheet.absoluteFillObject,
-  },
-});
+import MapView from 'react-native-vietbando'
+...
+render() {
+ return(
+ ...
+        <MapView ref={mapView => this.mapView = mapView}
+        // your props here
+        />
+ )
+}
+...
 ```
 
-```jsx
-<MapView
-  style={styles.map}
-  // other props
-/>
+# Table of Contents
+* [Installation Instructions](#installation-instructions)
+  * [React](#install-the-package-and-link-it)
+  * [Android](#modify-your-android-native-project)
+  * [iOS](#modify-your-ios-native-project)
+  * [License your map](#license-your-map)
+* [Props, Callbacks, and Method Calls](#props-callbacks-and-method-calls)
+  * [Props](#props)
+  * [Props In Depth](#props-in-depth)
+    * [Basemap URL](#basemap-url)
+    * [onSingleTap](#onSingleTap)
+  * [Callbacks](#callbacks)
+  * [Methods](#methods)
+    * [The Point Object](#the-point-object)
+    * [The Image Object](#the-image-object)
+    * [Example Overlay Object](#example-overlay-object)
+    * [Routing](#routing)
+* [License](#license)
+
+# Installation Instructions
+### Install the package and link it
+`yarn add react-native-Vietbando-mapview` or `npm install react-native-Vietbando-mapview`
+
+Then run `react-native link react-native-Vietbando-mapview`
+
+### Modify your Android native project
+First off, make sure your minSdk version is 19 and your targetSdk is at least 28 (Vietbando requires a minimum SDK level of 19). You can easily set these by modifying your Project build.gradle, within buildscript -> ext. 
+
+Inside your Project Gradle file, inside of allProjects, and within the repositories tag, add the following:
+```
+maven {
+  url 'https://esri.bintray.com/Vietbando'
+}
+```
+Then, inside your App Gradle file, if your app does not already have Java 8 Support (Vietbando Requires this from 100.4 onwards), add the following line inside the android bracket:
+```
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+```
+That's it. Your project should build.
+
+### Modify your iOS native project
+iOS is a bit trickier. Create a podfile in your iOS directory with the following contents:
+```ruby
+platform :ios, '11.0'
+
+target 'Example' do
+  # Uncomment the next line if you're using Swift or would like to use dynamic frameworks
+  # use_frameworks!
+
+    rn_path = '../node_modules/react-native'
+
+  # See http://facebook.github.io/react-native/docs/integration-with-existing-apps.html#configuring-cocoapods-dependencies
+  pod 'yoga', path: "#{rn_path}/ReactCommon/yoga/yoga.podspec"
+  pod 'React', path: rn_path, subspecs: [
+    'Core',
+    'CxxBridge',
+    'DevSupport',
+    'RCTActionSheet',
+    'RCTAnimation',
+    'RCTGeolocation',
+    'RCTImage',
+    'RCTLinkingIOS',
+    'RCTNetwork',
+    'RCTSettings',
+    'RCTText',
+    'RCTVibration',
+    'RCTWebSocket',
+  ], :modular_headers => true
+
+  # React Native third party dependencies podspecs
+  pod 'DoubleConversion', :podspec => "#{rn_path}/third-party-podspecs/DoubleConversion.podspec"
+  pod 'glog', :podspec => "#{rn_path}/third-party-podspecs/glog.podspec"
+
+  # If you are using React Native <0.54, you will get the following error:
+  # "The name of the given podspec `GLog` doesn't match the expected one `glog`"
+  # Use the following line instead:
+  #pod 'GLog', :podspec => "#{rn_path}/third-party-podspecs/GLog.podspec"
+  pod 'Folly', :podspec => "#{rn_path}/third-party-podspecs/Folly.podspec"
+  pod 'RNVietbandoMapView', :path => "../node_modules/react-native-Vietbando-mapview/ios"
+
+end
+
+# The following is needed to ensure the "archive" step works in XCode.
+# It removes React from the Pods project, as it is already included in the main project.
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    if target.name == "React"
+      target.remove_from_project
+    end
+  end
+end
+```
+If you already have a podfile, this is the key line you need to add:
+`pod 'RNVietbandoMapView', :path => "../node_modules/react-native-Vietbando-mapview/ios"`
+
+If you don't have swift implemented into your project, open your project directory and make a new Swift file. Name it whatever you want, it doesn't matter. Upon making this file, XCode should ask if you want to create a bridging header. If you plan on using Swift in your project, selecte 'Create Header'; otherwise, select no thanks. Then, open your project file and ensure your iOS Project targets iOS 11 or above and the Swift Language Version is set to 'Swift 4.2.' Clean, rebuild, and you should be good to go.
+
+### License your map
+A license is not required to develop and test. However, to release your app, you must provide a license. See [here for iOS](https://developers.Vietbando.com/ios/latest/swift/guide/license-your-app.htm) or [here for Android](https://developers.Vietbando.com/android/latest/guide/license-your-app.htm) for more information on how to get a license.
+
+Once you have one, it's easy to add it into your project. In your App.js (or wherever you initialize your app)
+```javascript
+import { setLicenseKey } from 'react-native-Vietbando-mapview';
+
+export default class App extends Component {
+  ...
+  constructor(props){
+    setLicenseKey('your_key');
+    ...
+  }
+  ...
+}
+```
+# Props, Callbacks, and Method Calls
+### Props
+Prop Name | Type | Description | Default
+------ | ------ | ------ | ------
+initialMapCenter | Object Array | Specifies the initial center of the map. Objects within the array must have both a latitude and longitude values. Including a single point will center around that point, while including multiple points will center around a polygon containing those points. | `[{latitude: 36.244797, longitude: -94.148060}]`
+recenterIfGraphicTapped | Boolean | If true, the map will recenter if a graphic is tapped on. | false
+basemapUrl | String | A URL that links to an Vietbando Online map with your style. A description on how to get this working can be found below. [Here's an example of one that works.](https://david-galindo.maps.Vietbando.com/home/item.html?id=96b0b60f091d4b3983f23fab131e8a72) | ''
+routeUrl | String | A URL that refers to an Vietbando routing service. See [routing](#routing) below for more information.
+minZoom | Double | A value that represents the minimum level in which a user can zoom out. For example, 70000000 is about continent level zoom. | 0
+maxZoom | Double | A value that represents the maximum level in which a user can zoom in. For example, 10000 is about building level zoom. | 0
+rotateEnabled | Boolean | If false, prevents the user from rotating the map. | true
+
+### Props In Depth
+##### Basemap URL
+Just follow these steps to get your basemap up and running.
+1. To get a basemap URL, I suggest you visit [this link](https://developers.Vietbando.com/vector-tile-style-editor/) to style a map to your liking. Once you're done, save your map (bottom left).
+2. Now go to [Vietbando Online](https://www.Vietbando.com/home/index.html). Sign in, if necessary, and then click on 'My Content.' Click on your style and you should see a summary page. Next to the bright blue button that says 'Open in Map Viewer,' click on the navigation arrow and then click 'add to new map.' A map should show up with your style. 
+3. On the left, under the 'Contents' heading, click the three blue dots under your style and then click 'move to basemap.' If there are other items that are not your basemap, click the three blue dots next to them and click 'Remove.' Once your map style is the only one that's left, click the 'Save -> Save As' floppy icon on top, name your map, click save again, and return to your content.
+4. Click on your map object. Click on Share and make sure you check 'Everyone' and then click 'Save.' Click 'Update' if necessary. Then click on the 'Settings' tab, scroll down to the Web Map Section, and then click 'Update Layers to HTTPS,' then 'Update Layers.'
+5. Now copy the URL from the search bar (it should look like this: http://david-galindo.maps.Vietbando.com/home/item.html?id=fc75f65db9504175b2fb0e87b66672e5#overview), remove anything after the # (including the #), change the http to https, and bingo, you got your basemap URL! Add that as the basemapUrl prop and you're good to go. It might take a moment to get up and running.
+
+#### Callbacks
+
+Callback Name | Parameters | Description
+--- | --- | ---
+onSingleTap | `{ points: { mapPoint: {latitude: Number, longitude: Number}, screenPoint: {x: Number, y: Number}, },graphicReferenceId: String?, }` | A callback that runs whenever the map is tapped once. A graphics ID is returned if a graphic was tapped on.
+onOverlayWasAdded | `{ referenceId: String }` | Called when overlay is added.
+onOverlayWasRemoved | `{ referenceId: String }` | Called when overlay is removed.
+onOverlayWasModified | `{ referenceId: String, action: String, success: Boolean, errorMessage: String? }` | Fires when an overlay was modified. 
+onMapDidLoad | `{ success: Boolean, errorMessage: String? }` | Executed when the map finishes loading or runs into an error.
+onRoutingStatusUpdate | `isRouting: Boolean` | Returns true or false whenever the app begins or ends a routing call. Useful for telling the user when a routing action is happening in the background.
+
+
+
+#### Methods
+
+Method Name | Parameters | Description
+----- | ----- | -----
+showCallout | `{ point: {latitude, longitude} , title: String?, text String?, shouldRecenter: Boolean? }` | (iOS Only) Creates a callout popup with a title and description at the given point.
+recenterMap | `[ point: {latitude, longitude}, point, ... ]` | Recenters the map around the given point(s).
+addGraphicsOverlay | `{pointGraphics: [graphicId: String, graphic: Image]?, referenceId: String, points: [Point] }` | Adds a graphics overlay with the given points. See below for more information.
+removeGraphicsOverlay | `{ overlayId: String }` | Removes the graphics overlay with the given ID.
+addPointsToOverlay | `{ overlayReferenceId: String, points: [Point] }` | Adds points to the overlay with the given overlayReferenceId.
+removePointsFromOverlay | `{ overlayReferenceId: String, referenceIds: [String] }` | Removes points from the overlay with the given overlayReferenceID. The reference ID array are the IDs of the points you wish to remove.
+updatePointsOnOverlay | `{ overlayReferenceId: String, updates: [Point], animated: Boolean }` | Updates points on a given overlay. All properties within an individual Point object are optional, though latitude and longitude must both be provided if you are updating either one. Animated controls whether or not the app should animate the transition from one point/rotation to another. Make sure each update is spaced about 500ms apart.
+routeGraphicsOverlay | `{ overlayReferenceId: String, excludeGraphics: [String]?, routeColor: String? }` | Routes a one-way route from all points within the overlay associated with the overlayReferenceId. You can exclude points by ID by placing their IDs inside the excludeGraphics array. See below for more info.
+getRouteIsVisible | ` {callback: Callback(Boolean)} ` | Returns the visibility of the route layer and passes it through a callback.
+setRouteIsVisible | `{ routeIsVisible: Boolean }` | Toggles the visiblity of the routing layer. 
+##### The Point Object
+Above, the Point object was referenced as 'Point.' The Point object is structured as follows:
+```javascript
+point: {
+  latitude: Number,
+  longitude: Number,
+  rotation: Number? = 0,
+  referenceId: String,
+  graphicId: String?,
+}
 ```
 
-#### Inputs don't focus
-
-* When inputs don't focus or elements don't respond to tap, look at the order of the view hierarchy, sometimes the issue could be due to ordering of rendered components, prefer putting MapView as the first component.
-
-Bad:
-
-```jsx
-<View>
-  <TextInput/>
-  <MapView/>
-</View>
+##### The Image Object
+When defining graphics, use the following format:
+```javascript
+import { Image } from 'react-native';
+...
+pointGraphics: [
+  {graphicId: 'graphicId', graphic: Image.resolveAssetSource(require('path_to_your_local_image')) },
+  // Repeat for as many graphics as you'd like
+]
+...
 ```
 
-Good:
-
-```jsx
-<View>
-  <MapView/>
-  <TextInput/>
-</View>
+##### Example overlay object
+```javascript
+{
+    pointGraphics: [
+    {graphicId: 'normalPoint', graphic: Image.resolveAssetSource(require('./src/normalpoint.png'))},
+    {graphicId: 'personPoint', graphic: Image.resolveAssetSource(require('./src/personpoint.png'))},
+    {graphicId: 'planePoint', graphic: Image.resolveAssetSource(require('./src/planepoint.png'))},
+  ],
+    referenceId: 'graphicsOverlay',
+    points: [{
+      latitude: 45.512230,
+      longitude: -122.658722,
+      rotation: 0,
+      referenceId: 'Portland',
+      graphicId: 'normalPoint',
+    },{
+      latitude: 38.907192,
+      longitude: -77.036873,
+      rotation: 0,
+      referenceId: 'Washington, D.C.',
+      graphicId: 'personPoint',
+    },{
+      latitude: 39.739235,
+      longitude: -104.990250,
+      rotation: 0,
+      referenceId: 'movingImage',
+      graphicId: 'planePoint',
+    },
+  ]
+}
 ```
 
-### Children Components Not Re-Rendering
-Components that aren't declared by this library (Ex: Markers, Polyline) must not be children of the MapView component due to MapView's unique rendering methodology. Have your custom components / views outside the MapView component and position absolute to ensure they only re-render as needed.
-Example:
-Bad:
+##### Routing
+For routing to work, you must also pass in a routeUrl prop with a reference to a routing service. Check the [Choosing a routing data source](https://developers.Vietbando.com/android/latest/guide/find-a-route.htm) section of this Esri Article for information on how to make one. 
 
-```jsx
-  <View style={StyleSheet.absoluteFillObject}>
-    <MapView style={StyleSheet.absoluteFillObject}>
-      <View style={{ position: 'absolute', top: 100, left: 50 }}/>
-    </MapView>
-  </View>
-```
+Once you have a routing URL, try calling `routeGraphicsOverlay` to see if your routing service has been configuired correctly. If it doesn't work, chances are your URL doesn't have the necessary permissions set. Make sure it has public access. Note that routing is an asynchronous task, and for longer routes, this may take a moment. Use the `onRoutingStatusUpdate` callback to create any UI you may need to inform the user that a route calculation is currently taking place.
 
-Good:
+The biggest gotcha, however, is that routing uses up [Vietbando Online Credits](https://www.esri.com/en-us/Vietbando/products/Vietbando-online/pricing/credits). You are given 50 free credits a month; however, you must buy additional credits to continue routing. Make sure your Vietbando Online account has sufficient credits before release.
 
-```jsx
-  <View style={StyleSheet.absoluteFillObject}>
-    <MapView style={StyleSheet.absoluteFillObject} />
-    <View style={{ position: 'absolute', top: 100, left: 50 }}/>
-  </View>
-```
+# License
+Library Copyright 2019 David Galindo
 
-Source: https://github.com/dzungdinh94/react-native-vietbando/issues/1901
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-License
---------
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-     Copyright (c) 2017 Airbnb
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-     Licensed under the The MIT License (MIT) (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-        https://raw.githubusercontent.com/airbnb/react-native-maps/master/LICENSE
-
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
+Vietbando SDK for Android and iOS Copyright 2019 [Esri.](https://developers.Vietbando.com/) 
