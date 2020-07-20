@@ -48,7 +48,7 @@
     "eslint-plugin-prefer-object-spread": "^1.2.1",
     "eslint-plugin-react": "^7.13.0",
     "gitbook-cli": "^2.3.0",
-    "lodash": "^4.17.2",
+    "lodash": "^4.17.19",
     "metro-react-native-babel-preset": "^0.53.1",
     "react": "16.8.3",
     "react-native": "0.59.3"
